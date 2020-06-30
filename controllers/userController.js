@@ -71,7 +71,6 @@ router.post("/logout",(req,res)=>{
     });
     
 });
-
 router.get("/",async function(req,res){
     try{
         if(req.session.user){
@@ -80,28 +79,21 @@ router.get("/",async function(req,res){
                 return following.followedId
             })
             
-            console.log(newUserIds)
-            var posts=[]
-            let k=0;
-            // for(var i=0;i<newUserIds.length;i++){
-            newUserIds.forEach(function(newUserId){
-                // var posts1=new Array()
-                User.findOne({_id:newUserId},function(err,foundUser){
-                    if(err){
-                        console.log("Some error occured");
-                    }else{
-                        // console.log(foundUser.posts)
-                        foundUser.posts.forEach(function(post){
-                            posts.push(post)
-                            // posts[k++]=post;
-                            // console.log(posts)
-                        })
-                        console.log(posts)
-                    }
-                })        
+            var posts=["current"]
+
+            var respo=newUserIds.map((userId)=>{
+                return User.findOne({_id:userId});
             })
+            // console.log(respo)
+            console.log("reached")
+            let getVal= await Promise.all(respo)
+            
+             posts=[...getVal]
             console.log(posts)
-            res.render('home-dashboard');
+            res.render('home-dashboard',{posts:posts})
+        //    response.then(()=>res.render())
+        //    .catch((err)=>res.send(err))
+            
         }
         else{
             res.render("homeguest",{regErrors:req.flash('regErrors')});
@@ -113,5 +105,46 @@ router.get("/",async function(req,res){
    
     
 })
+// router.get("/",async function(req,res){
+//     try{
+//         if(req.session.user){
+//             let userIds=await Follow.find({authorId:req.session.visitorId}).select('followedId')
+//             var newUserIds=userIds.map(function(following){
+//                 return following.followedId
+//             })
+            
+//             console.log(newUserIds)
+//             var posts=[]
+//             let k=0;
+//             // for(var i=0;i<newUserIds.length;i++){
+//             newUserIds.forEach(function(newUserId){
+//                 // var posts1=new Array()
+//                 User.findOne({_id:newUserId},function(err,foundUser){
+//                     if(err){
+//                         console.log("Some error occured");
+//                     }else{
+//                         // console.log(foundUser.posts)
+//                         foundUser.posts.forEach(function(post){
+//                             posts.push(post)
+//                             // posts[k++]=post;
+//                             // console.log(posts)
+//                         })
+//                         console.log(posts)
+//                     }
+//                 })        
+//             })
+//             console.log(posts)
+//             res.render('home-dashboard');
+//         }
+//         else{
+//             res.render("homeguest",{regErrors:req.flash('regErrors')});
+//         }
+//     }
+//     catch{
+//         res.render("404")
+//     }
+   
+    
+// })
 
 module.exports=router;
