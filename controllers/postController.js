@@ -66,14 +66,15 @@ router.get("/post/:id",middlewareUser.mustBeLoggedIn,function(req,res){
     if(typeof(id)!="string"){
         res.render("404");
     }
-    Post.findById(id,function(err,foundPost){
+    Post.findById(id,async function(err,foundPost){
         if(err){
             res.render("404");
         }
         else{
             // console.log(req.session.user)
-            
-            res.render("single-post-screen",{post:foundPost,id:req.session.visitorId});
+            var user=await User.findById(foundPost.author.id)
+            var avatar=getAvatar(user.email)
+            res.render("single-post-screen",{post:foundPost,id:req.session.visitorId,avatar:avatar});
         }
     })
    
@@ -83,7 +84,7 @@ router.get("/post/:id/edit",middlewareUser.mustBeLoggedIn,async function(req,res
     try{ 
         var id=req.params.id;
         
-        Post.findById(id,function(err,foundPost){
+        Post.findById(id,async function(err,foundPost){
             if(err){
                 res.render("404");
             }
@@ -235,7 +236,9 @@ router.post("/search", function(req,res){
     })
             
 })
-
+getAvatar=function(email){
+    return `https://gravatar.com/avatar/${md5(email)}?s=128`
+}
 function escapeRegex(text) {
     return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 };

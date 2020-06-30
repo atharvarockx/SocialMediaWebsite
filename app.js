@@ -12,6 +12,7 @@ const flash=require('connect-flash');
 const markdown=require('marked');
 const bodyParser=require("body-parser")
 const sanitizeHtml=require("sanitize-html");
+const md5=require('md5')
 
 const dotenv=require('dotenv');
 const { urlencoded } = require('body-parser')
@@ -25,7 +26,7 @@ app.use(bodyParser.urlencoded({extended:true}));
 let sessionOptions=session({
     secret:"I am so coool",
     store:new MongoStore({
-        url: 'mongodb://localhost/complexApp',
+        url: process.env.CONNECTIONSTRING,
         touchAfter: 24 * 3600 // time period in seconds
     }),
     resave:false,
@@ -36,7 +37,7 @@ app.use(sessionOptions);
 app.use(flash());
 app.use(methodOverride("_method"));
 mongoose.set('useCreateIndex', true)
-mongoose.connect("mongodb://localhost/complexApp", {useUnifiedTopology: true,useNewUrlParser: true,useFindAndModify: false}).then(() => console.log('DB Connected!')).catch(err => {
+mongoose.connect(process.env.CONNECTIONSTRING, {useUnifiedTopology: true,useNewUrlParser: true,useFindAndModify: false}).then(() => console.log('DB Connected!')).catch(err => {
 console.log("DB Connection Error: ");
 });
 
@@ -54,6 +55,7 @@ app.use(function(req,res,next){
     res.locals.errors=req.flash("errors");
     res.locals.success=req.flash("success");
     res.locals.user=req.session.user;
+    // res.locals.avatar=req.session
     next();
 })
 
@@ -62,7 +64,12 @@ app.use("/",postController);
 app.use("/profile",profileController);
 app.use("/",followController);
 
-app.listen(3000,function(){
+
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3000;
+}
+app.listen(port,function(){
     console.log("App started at " );
     console.log(process.env.PORT);
 })

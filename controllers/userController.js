@@ -1,6 +1,7 @@
 const User=require("../models/user");
 const Follow=require("../models/follow");
 const Post=require("../models/post");
+const md5=require('md5')
 const mongoose=require('mongoose')
 const express=require("express");
 const router=express.Router();
@@ -29,12 +30,14 @@ router.post("/register",async (req,res)=>{
             if(err)
                 res.json(err);
             else{
-                req.session.user={username:newUser.username,id:newUser._id};
+                req.session.user={avatar:getAvatar(newUser.email),username:newUser.username,id:newUser._id};
+                
                 req.session.save(function(){
                     res.redirect("/");
                 })
             }
         })
+        
     }
 })
 
@@ -50,7 +53,8 @@ router.post("/login",(req,res)=>{
         }
         else{
             if(bcrypt.compareSync(req.body.password,foundUser.password)){
-                req.session.user={username:req.body.username,id:foundUser._id};
+                req.session.user={avatar:getAvatar(foundUser.email),username:req.body.username,id:foundUser._id};
+                console.log(getAvatar(foundUser.email))
                 req.session.save(function(){
                     res.redirect("/");
                 })
@@ -87,10 +91,17 @@ router.get("/",async function(req,res){
             // console.log(respo)
             console.log("reached")
             let getVal= await Promise.all(respo)
-            
+            // console.log(getVal)
              posts=[...getVal]
             console.log(posts)
-            res.render('home-dashboard',{posts:posts})
+            var avatars=[]
+            // console.log(avatars)
+            posts.forEach(function(post){
+                avatars.push(getAvatar(post.email))
+                // console.log(getAvatar(post.email))
+            })
+            // console.log(avatars)
+            res.render('home-dashboard',{posts:posts,avatars:avatars})
         //    response.then(()=>res.render())
         //    .catch((err)=>res.send(err))
             
@@ -105,6 +116,9 @@ router.get("/",async function(req,res){
    
     
 })
+getAvatar=function(email){
+    return `https://gravatar.com/avatar/${md5(email)}?s=128`
+}
 // router.get("/",async function(req,res){
 //     try{
 //         if(req.session.user){
